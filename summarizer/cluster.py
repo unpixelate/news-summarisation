@@ -1,3 +1,4 @@
+#%%
 import numpy as np
 from numpy import ndarray
 from sklearn.cluster import KMeans,AgglomerativeClustering
@@ -7,7 +8,7 @@ from sklearn.decomposition import PCA
 from typing import List
 
 
-class ClusterEmbeddings():
+class ClusterEmbeddings:
     def __init__(
         self,
         features: ndarray,
@@ -51,7 +52,8 @@ class ClusterEmbeddings():
         :param model: Clustering model
         :return: Centroids
         """
-
+        if self.algorithm == 'affinity':
+            return AffinityPropagation()
         if self.algorithm == 'gmm':
             return model.means_
         if self.algorithm =="agglocust":
@@ -99,5 +101,7 @@ class ClusterEmbeddings():
         sorted_values = sorted(cluster_args.values())
         return sorted_values
 
-    def __call__(self, ratio: float = 0.1) -> List[int]:
+    def __call__(self, ratio: float) -> List[int]:
         return self.cluster(ratio)
+
+# %%

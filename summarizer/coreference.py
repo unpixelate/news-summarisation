@@ -14,20 +14,20 @@ def debug(*msges):
 
 class CoreferenceHandler(SentenceHandler):
 
-    def __init__(self, language = "en_core_web_sm", greedyness: float = 0.45):
+    def __init__(self, language = "en_core_web_sm", greedyness: float = 0.65):
         super().__init__()
         import spacy
         self.nlp = spacy.load(language)
         neuralcoref.add_to_pipe(self.nlp)
 
-    def process(self, body: str, min_length: int = 2, max_length: int = 600):
+    def process(self, body: str, min_length:int, max_length:int):
         coref_resolved_doc = self.nlp(body)._.coref_resolved
         doc = self.nlp(coref_resolved_doc)
         debug(body,coref_resolved_doc)
         return [c.string.strip() for c in doc.sents if max_length > len(c.string.strip()) > min_length]
 
-
-a = CoreferenceHandler()
-a.process(u'My sister has a dog. She loves him')
+if __name__ == "__main__":
+    a = CoreferenceHandler()
+    a.process(u'My sister has a dog. She loves him',0,100)
 
 # %%
