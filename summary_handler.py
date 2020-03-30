@@ -19,16 +19,21 @@ class Summarizer:
         ,model = None
         ,hidden = -2
         ,reduce_option = 'mean'
-        ,random_state = 2020):
+        ,random_state = 2020
+        ,small_model = False):
+
         self.nlp = language()
         self.nlp.add_pipe(self.nlp.create_pipe('sentencizer'))
-        self.model = BERT( 'bart-large-cnn')
+        if not small_model:
+            self.model = BERT( 'bart-large-cnn')
         self.augment_model = BERT('bert-base-uncased')
         self.hidden = hidden
         self.reduce_option = reduce_option
         self.random_state = random_state
         self.sentence_handler = sentence_handler
-    
+        self.small_model = small_model
+
+
     def process_sentence(self,text,min_length: int, max_length: int):
         text = text.replace('\n','')
         text = text.replace(':','-')
@@ -53,13 +58,24 @@ class Summarizer:
             print(voted)
         return [content[j] for j in voted]
 
-    def run(self, text,ratio,algorithm,use_first,min_length=None,max_length=None):
+    def fast_run_cluster(self, content, ratio, algorithm, use_first):
+        small_hidden = self.augment_model(content, self.hidden, self.reduce_option)
+        small_cluster = ClusterEmbeddings(small_hidden, algorithm, random_state=self.random_state)
+        voted = small_cluster(ratio)
+        if use_first and voted[0] != 0:
+            voted.insert(0,0)
+        return [content[j] for j in voted]
+
+
+    def run(self, text,ratio,algorithm,use_first,min_length=None,max_length=None, fast=False):
         if min_length and max_length:
             sentences = self.process_sentence(text,min_length,max_length)
         else:
             sentences = self.process_sentence(text)
-        if sentences:
-            sentences = self.run_cluster(sentences,ratio,algorithm, use_first)
+        if sentences and not self.small_model:
+            sentences = self.run_cluster(sentences, ratio, algorithm, use_first)
+        if sentences and self.small_model:
+            sentences = self.fast_run_cluster(sentences, ratio, algorithm, use_first)
         return " ".join(sentences)
 
     def combine_sentence(self,augment,main,degree=3):
@@ -90,7 +106,7 @@ class Summarizer:
 if __name__ == "__main__":
     import pickle
     a = Summarizer()
-    filename = 'saved_model.pkl'
+    filename = 'small_saved_model.pkl'
     pickle.dump(a, open(filename, 'wb'))
 
 # %%
@@ -127,3 +143,4 @@ if __name__ == "__main__":
         z = a(text,ratio=0.2,algorithm='kmeans',use_first=True,min_length=10,max_length=500)
         print(z)
 # %%
+
