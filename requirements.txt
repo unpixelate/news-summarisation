@@ -249,7 +249,7 @@ tables==3.6.1
 tb-nightly==1.14.0a20190301
 tblib==1.6.0
 tensorboard==2.1.1
-tensorflow==2.1.0
+tensorflow==2.5.0
 tensorflow-datasets==1.0.1
 tensorflow-estimator==2.1.0
 termcolor==1.1.0
